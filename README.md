@@ -1,5 +1,4 @@
-# flowcare-backend
-Rihhal Challenge 2026 - flowcare backend
+# Rihal Challenge 2026 - flowcare backend
 
 
 # FlowCare Backend 🏥
