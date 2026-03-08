@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.database import engine, Base, SessionLocal
 from app import models
-from app.routers import auth, public, appointments
+from app.routers import auth, public, appointments, admin 
 from app.core.init_data import create_default_admin
 from app.core.seed import seed_data
 # إنشاء الجداول
@@ -23,6 +23,7 @@ app = FastAPI(
 app.include_router(auth.router)
 app.include_router(public.router)
 app.include_router(appointments.router)
+app.include_router(admin.router)
 
 @app.get("/")
 def root():
