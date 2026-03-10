@@ -13,7 +13,7 @@ class Branch(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # العلاقات
+    # Relationships
     staff = relationship("Staff", back_populates="branch")
     slots = relationship("Slot", back_populates="branch")
     service_types = relationship("ServiceType", back_populates="branch")

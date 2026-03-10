@@ -15,12 +15,12 @@ class Slot(Base):
     # Soft Delete
     deleted_at = Column(DateTime, nullable=True)
 
-    # الربط بالفرع والخدمة والموظف
+    # Branch, service type, and staff relationships
     branch_id = Column(Integer, ForeignKey("branches.id"), nullable=False)
     service_type_id = Column(Integer, ForeignKey("service_types.id"), nullable=False)
     staff_id = Column(Integer, ForeignKey("staff.id"), nullable=True)
 
-    # العلاقات
+    #relationship
     branch = relationship("Branch", back_populates="slots")
     service_type = relationship("ServiceType", back_populates="slots")
     staff = relationship("Staff", back_populates="slots")

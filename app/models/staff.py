@@ -20,10 +20,10 @@ class Staff(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # الربط بالفرع
+    # Branch relationship
     branch_id = Column(Integer, ForeignKey("branches.id"), nullable=True)
     branch = relationship("Branch", back_populates="staff")
 
-    # العلاقات
+    # relationship
     appointments = relationship("Appointment", back_populates="staff")
     slots = relationship("Slot", back_populates="staff")

@@ -4,10 +4,10 @@ from app import models
 from app.routers import auth, public, appointments, admin 
 from app.core.init_data import create_default_admin
 from app.core.seed import seed_data
-# إنشاء الجداول
+# Create database tables
 Base.metadata.create_all(bind=engine)
 
-# إنشاء الأدمن الافتراضي
+# Create default admin
 db = SessionLocal()
 create_default_admin(db)
 seed_data(db)
@@ -19,7 +19,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# إضافة الـ routers
+# Include routers
 app.include_router(auth.router)
 app.include_router(public.router)
 app.include_router(appointments.router)

@@ -19,7 +19,7 @@ async def book_appointment(
 ):
     customer = user_data["user"]
 
-    # تحقق إن السلوت موجود ومتاح
+    # Check if slot exists and is available
     slot = db.query(Slot).filter(
         Slot.id == slot_id,
         Slot.is_available == True,
@@ -28,7 +28,7 @@ async def book_appointment(
     if not slot:
         raise HTTPException(status_code=404, detail="Slot not available ❌")
 
-    # حفظ المرفق لو موجود
+    # Save attachment if provided
     attachment_path = None
     if attachment and attachment.filename:
         if attachment.content_type not in ["image/jpeg", "image/png", "image/jpg", "application/pdf"]:
@@ -43,7 +43,7 @@ async def book_appointment(
         with open(attachment_path, "wb") as f:
             f.write(contents)
 
-    # إنشاء الموعد
+    # Create the appointment
     appointment = Appointment(
         slot_id=slot_id,
         customer_id=customer.id,
@@ -51,7 +51,7 @@ async def book_appointment(
     )
     db.add(appointment)
 
-    # تحديث السلوت لغير متاح
+    # Mark slot as unavailable
     slot.is_available = False
     db.commit()
     db.refresh(appointment)
@@ -98,7 +98,7 @@ def cancel_appointment(
     if appointment.status == AppointmentStatus.cancelled:
         raise HTTPException(status_code=400, detail="Appointment already cancelled ❌")
 
-    # إرجاع السلوت متاح
+    # Free up the slot
     slot = db.query(Slot).filter(Slot.id == appointment.slot_id).first()
     if slot:
         slot.is_available = True
@@ -125,7 +125,7 @@ def reschedule_appointment(
     if appointment.status == AppointmentStatus.cancelled:
         raise HTTPException(status_code=400, detail="Cannot reschedule cancelled appointment ❌")
 
-    # تحقق من السلوت الجديد
+    # Check the new slot
     new_slot = db.query(Slot).filter(
         Slot.id == new_slot_id,
         Slot.is_available == True,
@@ -134,12 +134,12 @@ def reschedule_appointment(
     if not new_slot:
         raise HTTPException(status_code=404, detail="New slot not available ❌")
 
-    # إرجاع السلوت القديم متاح
+    # Free up the old slot
     old_slot = db.query(Slot).filter(Slot.id == appointment.slot_id).first()
     if old_slot:
         old_slot.is_available = True
 
-    # تحديث الموعد
+    # Update the appointment
     appointment.slot_id = new_slot_id
     new_slot.is_available = False
     db.commit()

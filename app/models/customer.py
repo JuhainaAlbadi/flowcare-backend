@@ -15,5 +15,5 @@ class Customer(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # العلاقات
+    # Relationships
     appointments = relationship("Appointment", back_populates="customer")

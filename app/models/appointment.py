@@ -21,12 +21,12 @@ class Appointment(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    # الربط
+    # Relationships
     slot_id = Column(Integer, ForeignKey("slots.id"), nullable=False)
     customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
     staff_id = Column(Integer, ForeignKey("staff.id"), nullable=True)
 
-    # العلاقات
+  
     slot = relationship("Slot", back_populates="appointment")
     customer = relationship("Customer", back_populates="appointments")
     staff = relationship("Staff", back_populates="appointments")

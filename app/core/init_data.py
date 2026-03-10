@@ -2,7 +2,7 @@ from app.models.staff import Staff, StaffRole
 from app.core.security import hash_password
 
 def create_default_admin(db):
-    # تحقق إن الأدمن ما موجود
+    # check if admin is available 
     existing = db.query(Staff).filter(Staff.email == "admin@flowcare.com").first()
     if existing:
         return

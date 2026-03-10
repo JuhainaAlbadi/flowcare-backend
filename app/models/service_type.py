@@ -13,9 +13,9 @@ class ServiceType(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # الربط بالفرع
+    # Branch relationship
     branch_id = Column(Integer, ForeignKey("branches.id"), nullable=False)
     branch = relationship("Branch", back_populates="service_types")
 
-    # العلاقات
+    # Relationship
     slots = relationship("Slot", back_populates="service_type")

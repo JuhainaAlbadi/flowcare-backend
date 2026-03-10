@@ -26,6 +26,8 @@ def list_available_slots(
     branch_id: int,
     service_type_id: int = Query(None),
     date: str = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=50),
     db: Session = Depends(get_db)
 ):
     query = db.query(Slot).filter(
@@ -38,5 +40,14 @@ def list_available_slots(
     if date:
         date_obj = datetime.strptime(date, "%Y-%m-%d")
         query = query.filter(Slot.start_time >= date_obj)
-    slots = query.all()
-    return [{"id": s.id, "start_time": s.start_time, "end_time": s.end_time, "service_type_id": s.service_type_id} for s in slots]
+
+    total = query.count()
+    slots = query.offset((page - 1) * page_size).limit(page_size).all()
+
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (total + page_size - 1) // page_size,
+        "slots": [{"id": s.id, "start_time": s.start_time, "end_time": s.end_time, "service_type_id": s.service_type_id} for s in slots]
+    }

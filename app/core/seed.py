@@ -6,11 +6,11 @@ from app.core.security import hash_password
 from datetime import datetime, timedelta, timezone
 
 def seed_data(db):
-    # تحقق إن البيانات ما موجودة
+   # Check if data already exists
     if db.query(Branch).first():
         return
 
-    # إنشاء الفروع
+   # Create branches
     branch1 = Branch(name="Muscat Branch", location="Muscat, Oman", phone="24000001")
     branch2 = Branch(name="Salalah Branch", location="Salalah, Oman", phone="23000001")
     db.add_all([branch1, branch2])
@@ -18,7 +18,7 @@ def seed_data(db):
     db.refresh(branch1)
     db.refresh(branch2)
 
-    # إنشاء الخدمات
+    # Create service types
     services = [
         ServiceType(name="Medical Checkup", description="General medical checkup", duration_minutes=30, branch_id=branch1.id),
         ServiceType(name="Visa Services", description="Visa application processing", duration_minutes=20, branch_id=branch1.id),
@@ -30,7 +30,7 @@ def seed_data(db):
     db.add_all(services)
     db.commit()
 
-    # إنشاء المدراء والموظفين
+    # Create managers and staff
     staff_list = [
         Staff(full_name="Ahmed Al-Balushi", email="manager1@flowcare.com", hashed_password=hash_password("manager123"), role=StaffRole.branch_manager, branch_id=branch1.id),
         Staff(full_name="Fatima Al-Rashdi", email="manager2@flowcare.com", hashed_password=hash_password("manager123"), role=StaffRole.branch_manager, branch_id=branch2.id),
@@ -42,7 +42,7 @@ def seed_data(db):
     db.add_all(staff_list)
     db.commit()
 
-    # إنشاء السلوتات للأيام القادمة
+    # Create slots for the upcoming days
     slots = []
     for day in range(1, 8):
         for hour in range(8, 16):

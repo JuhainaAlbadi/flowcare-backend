@@ -19,21 +19,21 @@ async def register_customer(
     id_image: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    # تحقق إن الإيميل ما يتكرر
+    # Check if email already exists
     existing = db.query(Customer).filter(Customer.email == email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # تحقق من نوع الصورة
+    # Validate image type
     if id_image.content_type not in ["image/jpeg", "image/png", "image/jpg"]:
         raise HTTPException(status_code=400, detail="Only images are allowed")
 
-    # تحقق من حجم الصورة
+    # Validate image size
     contents = await id_image.read()
     if len(contents) > settings.MAX_FILE_SIZE:
         raise HTTPException(status_code=400, detail="File too large, max 5MB")
 
-    # حفظ الصورة
+    # Save the image
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     file_ext = id_image.filename.split(".")[-1]
     file_name = f"{uuid.uuid4()}.{file_ext}"
@@ -42,7 +42,7 @@ async def register_customer(
     with open(file_path, "wb") as f:
         f.write(contents)
 
-    # إنشاء الزبون
+    # Create the customer
     customer = Customer(
         full_name=full_name,
         email=email,
