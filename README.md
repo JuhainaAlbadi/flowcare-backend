@@ -14,7 +14,8 @@ Built for **Rihal CodeStacker 2026 - Backend Challenge**.
 - ✅ Appointment booking, cancellation, and rescheduling
 - ✅ Role-based access (Admin, Branch Manager, Staff, Customer)
 - ✅ Slot management with Soft Delete
-- ✅ Audit logging for all sensitive actions
+- ✅ Audit logging for all sensitive actions with CSV export
+- ✅ Pagination and search support
 - ✅ Auto-seeded database on startup
 - ✅ Docker support
 
@@ -60,7 +61,8 @@ docker-compose up --build
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | admin@flowcare.com | admin123 |
-| Manager | manager1@flowcare.com | manager123 |
+| Manager (Muscat) | manager1@flowcare.com | manager123 |
+| Manager (Salalah) | manager2@flowcare.com | manager123 |
 | Staff | staff1@flowcare.com | staff123 |
 
 ## API Documentation
