@@ -49,5 +49,6 @@ def list_available_slots(
         "page": page,
         "page_size": page_size,
         "total_pages": (total + page_size - 1) // page_size,
-        "slots": [{"id": s.id, "start_time": s.start_time, "end_time": s.end_time, "service_type_id": s.service_type_id} for s in slots]
+        "results": [{"id": s.id, "start_time": s.start_time, "end_time": s.end_time, "service_type_id": s.service_type_id} for s in slots]
+
     }

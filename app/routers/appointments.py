@@ -7,6 +7,7 @@ from app.core.dependencies import get_authenticated_user, require_customer, chec
 from app.core.config import settings
 import os
 import uuid
+from app.models.audit_log import AuditLog, ActionType
 
 
 router = APIRouter(prefix="/appointments", tags=["Appointments"])
@@ -52,10 +53,22 @@ async def book_appointment(
     )
     db.add(appointment)
 
-    # Mark slot as unavailable
+ # Mark slot as unavailable
     slot.is_available = False
     db.commit()
     db.refresh(appointment)
+
+    # Log appointment creation
+    log = AuditLog(
+        action=ActionType.appointment_created,
+        actor_id=customer.id,
+        actor_role="customer",
+        entity_type="appointment",
+        entity_id=appointment.id,
+        branch_id=slot.branch_id
+    )
+    db.add(log)
+    db.commit()
 
     return {
         "message": "Appointment booked successfully 📅",
@@ -137,6 +150,16 @@ def cancel_appointment(
         slot.is_available = True
 
     appointment.status = AppointmentStatus.cancelled
+    # Log appointment cancellation
+    log = AuditLog(
+        action=ActionType.appointment_cancelled,
+        actor_id=customer.id,
+        actor_role="customer",
+        entity_type="appointment",
+        entity_id=appointment_id,
+        branch_id=None
+    )
+    db.add(log)
     db.commit()
 
     return {"message": "Appointment cancelled successfully ✅"}
@@ -175,6 +198,16 @@ def reschedule_appointment(
     # Update the appointment
     appointment.slot_id = new_slot_id
     new_slot.is_available = False
+    # Log appointment reschedule
+    log = AuditLog(
+        action=ActionType.appointment_rescheduled,
+        actor_id=customer.id,
+        actor_role="customer",
+        entity_type="appointment",
+        entity_id=appointment_id,
+        branch_id=None
+    )
+    db.add(log)
     db.commit()
 
     return {"message": "Appointment rescheduled successfully 📅", "new_slot_id": new_slot_id}

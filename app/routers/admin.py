@@ -257,7 +257,7 @@ def list_customers(
         "page": page,
         "page_size": page_size,
         "total_pages": (total + page_size - 1) // page_size,
-        "customers": [{"id": c.id, "full_name": c.full_name, "email": c.email, "phone": c.phone} for c in customers]
+        "results": [{"id": c.id, "full_name": c.full_name, "email": c.email, "phone": c.phone} for c in customers]
     }
 
 @router.get("/customers/{customer_id}")
