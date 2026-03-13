@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.appointment import Appointment, AppointmentStatus
 from app.models.slot import Slot
-from app.core.dependencies import get_authenticated_user, require_customer
+from app.core.dependencies import get_authenticated_user, require_customer, check_booking_rate_limit
 from app.core.config import settings
 import os
 import uuid
+
 
 router = APIRouter(prefix="/appointments", tags=["Appointments"])
 
@@ -15,7 +16,7 @@ async def book_appointment(
     slot_id: int = Form(...),
     attachment: UploadFile = File(None),
     db: Session = Depends(get_db),
-    user_data = Depends(require_customer)
+    user_data = Depends(check_booking_rate_limit)
 ):
     customer = user_data["user"]
 
@@ -81,6 +82,38 @@ def my_appointments(
             "created_at": a.created_at
         } for a in appointments
     ]
+
+@router.get("/my/{appointment_id}")
+def get_appointment_details(
+    appointment_id: int,
+    db: Session = Depends(get_db),
+    user_data = Depends(require_customer)
+):
+    customer = user_data["user"]
+    appointment = db.query(Appointment).filter(
+        Appointment.id == appointment_id,
+        Appointment.customer_id == customer.id
+    ).first()
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found ❌")
+
+    slot = db.query(Slot).filter(Slot.id == appointment.slot_id).first()
+
+    return {
+        "id": appointment.id,
+        "status": appointment.status,
+        "notes": appointment.notes,
+        "created_at": appointment.created_at,
+        "updated_at": appointment.updated_at,
+        "attachment_path": appointment.attachment_path,
+        "slot": {
+            "id": slot.id,
+            "start_time": slot.start_time,
+            "end_time": slot.end_time,
+            "branch_id": slot.branch_id,
+            "service_type_id": slot.service_type_id
+        } if slot else None
+    }
 
 @router.delete("/cancel/{appointment_id}")
 def cancel_appointment(

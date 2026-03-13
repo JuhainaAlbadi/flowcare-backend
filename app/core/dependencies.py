@@ -37,3 +37,29 @@ def require_customer(user_data = Depends(get_authenticated_user)):
     if user_data["type"] != "customer":
         raise HTTPException(status_code=403, detail="Customer access required 🚫")
     return user_data
+
+from datetime import datetime, date
+from collections import defaultdict
+
+# In-memory rate limit storage
+booking_counts = defaultdict(lambda: {"count": 0, "date": date.today()})
+
+def check_booking_rate_limit(user_data = Depends(get_authenticated_user)):
+    user = user_data["user"]
+    user_key = f"customer_{user.id}"
+    
+    today = date.today()
+    
+    # Reset count if new day
+    if booking_counts[user_key]["date"] != today:
+        booking_counts[user_key] = {"count": 0, "date": today}
+    
+    # Check limit (5 bookings per day)
+    if booking_counts[user_key]["count"] >= 5:
+        raise HTTPException(
+            status_code=429,
+            detail="Booking limit reached. Maximum 5 bookings per day ❌"
+        )
+    
+    booking_counts[user_key]["count"] += 1
+    return user_data
