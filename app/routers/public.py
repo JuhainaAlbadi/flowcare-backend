@@ -31,10 +31,10 @@ def list_available_slots(
     db: Session = Depends(get_db)
 ):
     query = db.query(Slot).filter(
-        Slot.branch_id == branch_id,
-        Slot.is_available == True,
-        Slot.deleted_at == None
-    )
+    Slot.branch_id == branch_id,
+    Slot.is_available == True,
+    Slot.deleted_at == None
+).order_by(Slot.start_time)
     if service_type_id:
         query = query.filter(Slot.service_type_id == service_type_id)
     if date:
