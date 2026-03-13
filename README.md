@@ -93,7 +93,7 @@ Create a database named `flowcare` in PostgreSQL.
 
 ## Seed Data
 
-The database is automatically seeded on startup with:
+The database is automatically seeded on startup using `seed_data.json` with:
 - 2 branches (Muscat, Salalah)
 - 3 service types per branch
 - 1 manager + 2 staff per branch

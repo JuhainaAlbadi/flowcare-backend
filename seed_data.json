@@ -1,0 +1,22 @@
+{
+  "branches": [
+    {"name": "Muscat Branch", "location": "Muscat, Oman", "phone": "24000001"},
+    {"name": "Salalah Branch", "location": "Salalah, Oman", "phone": "23000001"}
+  ],
+  "service_types": [
+    {"name": "Medical Checkup", "description": "General medical checkup", "duration_minutes": 30, "branch": "Muscat Branch"},
+    {"name": "Visa Services", "description": "Visa application processing", "duration_minutes": 20, "branch": "Muscat Branch"},
+    {"name": "ID Renewal", "description": "National ID renewal", "duration_minutes": 15, "branch": "Muscat Branch"},
+    {"name": "Medical Checkup", "description": "General medical checkup", "duration_minutes": 30, "branch": "Salalah Branch"},
+    {"name": "Passport Services", "description": "Passport processing", "duration_minutes": 25, "branch": "Salalah Branch"},
+    {"name": "License Renewal", "description": "Driver license renewal", "duration_minutes": 20, "branch": "Salalah Branch"}
+  ],
+  "staff": [
+    {"full_name": "Ahmed Al-Balushi", "email": "manager1@flowcare.com", "password": "manager123", "role": "branch_manager", "branch": "Muscat Branch"},
+    {"full_name": "Fatima Al-Rashdi", "email": "manager2@flowcare.com", "password": "manager123", "role": "branch_manager", "branch": "Salalah Branch"},
+    {"full_name": "Khalid Al-Habsi", "email": "staff1@flowcare.com", "password": "staff123", "role": "staff", "branch": "Muscat Branch"},
+    {"full_name": "Maryam Al-Hinai", "email": "staff2@flowcare.com", "password": "staff123", "role": "staff", "branch": "Muscat Branch"},
+    {"full_name": "Omar Al-Farsi", "email": "staff3@flowcare.com", "password": "staff123", "role": "staff", "branch": "Salalah Branch"},
+    {"full_name": "Noura Al-Zadjali", "email": "staff4@flowcare.com", "password": "staff123", "role": "staff", "branch": "Salalah Branch"}
+  ]
+}
