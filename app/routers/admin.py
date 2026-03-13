@@ -191,22 +191,33 @@ def update_slot(
 # ============ appoinments ============
 @router.get("/appointments")
 def list_appointments(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=50),
     db: Session = Depends(get_db),
     user_data = Depends(require_staff_or_above)
 ):
     user = user_data["user"]
     if user.role == StaffRole.admin:
-        appointments = db.query(Appointment).all()
+        query = db.query(Appointment)
     elif user.role == StaffRole.branch_manager:
-        appointments = db.query(Appointment).join(Slot).filter(
+        query = db.query(Appointment).join(Slot).filter(
             Slot.branch_id == user.branch_id
-        ).all()
+        )
     else:
-        appointments = db.query(Appointment).filter(
+        query = db.query(Appointment).filter(
             Appointment.staff_id == user.id
-        ).all()
+        )
 
-    return [{"id": a.id, "status": a.status, "customer_id": a.customer_id, "slot_id": a.slot_id} for a in appointments]
+    total = query.count()
+    appointments = query.offset((page - 1) * page_size).limit(page_size).all()
+
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (total + page_size - 1) // page_size,
+        "results": [{"id": a.id, "status": a.status, "customer_id": a.customer_id, "slot_id": a.slot_id} for a in appointments]
+    }
 
 @router.put("/appointments/{appointment_id}/status")
 def update_appointment_status(
@@ -283,32 +294,59 @@ def get_customer(
 # ============  Audit Log ============
 @router.get("/audit-logs")
 def get_audit_logs(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=50),
     db: Session = Depends(get_db),
     user_data = Depends(require_manager_or_admin)
 ):
     user = user_data["user"]
     if user.role == StaffRole.admin:
-        logs = db.query(AuditLog).all()
+        query = db.query(AuditLog)
     else:
-        logs = db.query(AuditLog).filter(AuditLog.branch_id == user.branch_id).all()
+        query = db.query(AuditLog).filter(AuditLog.branch_id == user.branch_id)
 
-    return [{"id": l.id, "action": l.action, "actor_id": l.actor_id, "entity_type": l.entity_type, "entity_id": l.entity_id, "created_at": l.created_at} for l in logs]
+    total = query.count()
+    logs = query.offset((page - 1) * page_size).limit(page_size).all()
 
-
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (total + page_size - 1) // page_size,
+        "results": [{"id": l.id, "action": l.action, "actor_id": l.actor_id, "entity_type": l.entity_type, "entity_id": l.entity_id, "created_at": l.created_at} for l in logs]
+    }
 
     # ============ staff ============
 @router.get("/staff")
 def list_staff(
+    search: str = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=50),
     db: Session = Depends(get_db),
     user_data = Depends(require_manager_or_admin)
 ):
     user = user_data["user"]
     if user.role == StaffRole.admin:
-        staff = db.query(Staff).all()
+        query = db.query(Staff)
     else:
-        staff = db.query(Staff).filter(Staff.branch_id == user.branch_id).all()
+        query = db.query(Staff).filter(Staff.branch_id == user.branch_id)
 
-    return [{"id": s.id, "full_name": s.full_name, "email": s.email, "role": s.role, "branch_id": s.branch_id} for s in staff]
+    if search:
+        query = query.filter(
+            Staff.full_name.ilike(f"%{search}%") |
+            Staff.email.ilike(f"%{search}%")
+        )
+
+    total = query.count()
+    staff = query.offset((page - 1) * page_size).limit(page_size).all()
+
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (total + page_size - 1) // page_size,
+        "results": [{"id": s.id, "full_name": s.full_name, "email": s.email, "role": s.role, "branch_id": s.branch_id} for s in staff]
+    }
 
 @router.put("/staff/{staff_id}/assign")
 def assign_staff(

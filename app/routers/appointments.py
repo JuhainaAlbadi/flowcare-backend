@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.appointment import Appointment, AppointmentStatus
@@ -79,22 +79,34 @@ async def book_appointment(
 
 @router.get("/my")
 def my_appointments(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=50),
     db: Session = Depends(get_db),
     user_data = Depends(require_customer)
 ):
     customer = user_data["user"]
-    appointments = db.query(Appointment).filter(
+    query = db.query(Appointment).filter(
         Appointment.customer_id == customer.id
-    ).all()
-    return [
-        {
-            "id": a.id,
-            "slot_id": a.slot_id,
-            "status": a.status,
-            "notes": a.notes,
-            "created_at": a.created_at
-        } for a in appointments
-    ]
+    )
+
+    total = query.count()
+    appointments = query.offset((page - 1) * page_size).limit(page_size).all()
+
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (total + page_size - 1) // page_size,
+        "results": [
+            {
+                "id": a.id,
+                "slot_id": a.slot_id,
+                "status": a.status,
+                "notes": a.notes,
+                "created_at": a.created_at
+            } for a in appointments
+        ]
+    }
 
 @router.get("/my/{appointment_id}")
 def get_appointment_details(
