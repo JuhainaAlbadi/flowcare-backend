@@ -28,35 +28,44 @@ class StatusUpdate(str, PyEnum):
 def create_slot(
     branch_id: int = Form(...),
     service_type_id: int = Form(...),
-    start_time: str = Form(...),
-    end_time: str = Form(...),
+    start_times: str = Form(...),
+    end_times: str = Form(...),
     staff_id: int = Form(None),
     db: Session = Depends(get_db),
     user_data = Depends(require_manager_or_admin)
 ):
-    slot = Slot(
-        branch_id=branch_id,
-        service_type_id=service_type_id,
-        start_time=datetime.fromisoformat(start_time),
-        end_time=datetime.fromisoformat(end_time),
-        staff_id=staff_id
-    )
-    db.add(slot)
-    db.commit()
-    db.refresh(slot)
+    # Split by comma for bulk creation
+    start_list = [s.strip() for s in start_times.split(",")]
+    end_list = [e.strip() for e in end_times.split(",")]
 
-    log = AuditLog(
-        action=ActionType.slot_created,
-        actor_id=user_data["user"].id,
-        actor_role=user_data["user"].role,
-        entity_type="slot",
-        entity_id=slot.id,
-        branch_id=branch_id
-    )
-    db.add(log)
-    db.commit()
+    if len(start_list) != len(end_list):
+        raise HTTPException(status_code=400, detail="start_times and end_times must have same count ❌")
 
-    return {"message": "Slot created successfully ✅", "slot_id": slot.id}
+    created = []
+    for start, end in zip(start_list, end_list):
+        slot = Slot(
+            branch_id=branch_id,
+            service_type_id=service_type_id,
+            start_time=datetime.fromisoformat(start),
+            end_time=datetime.fromisoformat(end),
+            staff_id=staff_id
+        )
+        db.add(slot)
+        db.flush()
+
+        log = AuditLog(
+            action=ActionType.slot_created,
+            actor_id=user_data["user"].id,
+            actor_role=user_data["user"].role,
+            entity_type="slot",
+            entity_id=slot.id,
+            branch_id=branch_id
+        )
+        db.add(log)
+        created.append(slot.id)
+
+    db.commit()
+    return {"message": f"{len(created)} slot(s) created successfully ✅", "slot_ids": created}
 
 @router.get("/slots/deleted")
 def list_deleted_slots(
@@ -191,6 +200,7 @@ def update_slot(
 # ============ appoinments ============
 @router.get("/appointments")
 def list_appointments(
+    search: str = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),
     db: Session = Depends(get_db),
@@ -208,6 +218,12 @@ def list_appointments(
             Appointment.staff_id == user.id
         )
 
+    if search:
+        query = query.join(Customer).filter(
+            Customer.full_name.ilike(f"%{search}%") |
+            Customer.email.ilike(f"%{search}%")
+        )
+
     total = query.count()
     appointments = query.offset((page - 1) * page_size).limit(page_size).all()
 
@@ -216,13 +232,14 @@ def list_appointments(
         "page": page,
         "page_size": page_size,
         "total_pages": (total + page_size - 1) // page_size,
-        "results": [{"id": a.id, "status": a.status, "customer_id": a.customer_id, "slot_id": a.slot_id} for a in appointments]
+        "results": [{"id": a.id, "status": a.status, "customer_id": a.customer_id, "slot_id": a.slot_id, "notes": a.notes} for a in appointments]
     }
 
 @router.put("/appointments/{appointment_id}/status")
 def update_appointment_status(
     appointment_id: int,
     status: StatusUpdate = Form(...),
+    notes: str = Form(None),
     db: Session = Depends(get_db),
     user_data = Depends(require_staff_or_above)
 ):
@@ -231,6 +248,10 @@ def update_appointment_status(
         raise HTTPException(status_code=404, detail="Appointment not found ❌")
 
     appointment.status = AppointmentStatus(status.value)
+    
+    # Add internal notes if provided
+    if notes:
+        appointment.notes = notes
 
     log = AuditLog(
         action=ActionType.appointment_status_updated,

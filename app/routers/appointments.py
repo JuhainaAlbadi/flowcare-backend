@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.appointment import Appointment, AppointmentStatus
 from app.models.slot import Slot
-from app.core.dependencies import get_authenticated_user, require_customer, check_booking_rate_limit
+from app.core.dependencies import require_customer, require_staff_or_above, get_authenticated_user, check_booking_rate_limit, check_reschedule_rate_limit
 from app.core.config import settings
 import os
 import uuid
@@ -45,10 +45,11 @@ async def book_appointment(
         with open(attachment_path, "wb") as f:
             f.write(contents)
 
-    # Create the appointment
+   # Create the appointment
     appointment = Appointment(
         slot_id=slot_id,
         customer_id=customer.id,
+        staff_id=slot.staff_id,
         attachment_path=attachment_path
     )
     db.add(appointment)
@@ -181,7 +182,7 @@ def reschedule_appointment(
     appointment_id: int,
     new_slot_id: int = Form(...),
     db: Session = Depends(get_db),
-    user_data = Depends(require_customer)
+    user_data = Depends(check_reschedule_rate_limit)
 ):
     customer = user_data["user"]
     appointment = db.query(Appointment).filter(
