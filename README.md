@@ -86,7 +86,10 @@ Create a database named `flowcare` in PostgreSQL.
 | Admin | admin@flowcare.com | admin123 |
 | Manager (Muscat) | manager1@flowcare.com | manager123 |
 | Manager (Salalah) | manager2@flowcare.com | manager123 |
-| Staff | staff1@flowcare.com | staff123 |
+| Staff (Muscat) | staff1@flowcare.com | staff123 |
+| Staff (Muscat) | staff2@flowcare.com | staff123 |
+| Staff (Salalah) | staff3@flowcare.com | staff123 |
+| Staff (Salalah) | staff4@flowcare.com | staff123 |
 
 ## Seed Data
 
